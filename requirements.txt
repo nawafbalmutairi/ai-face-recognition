@@ -1,0 +1,8 @@
+torch>=2.0.0
+torchvision>=0.15.0
+azureml-core>=1.55.0
+azureml-pipeline>=1.55.0
+pandas>=2.0.0
+numpy>=1.24.0
+matplotlib>=3.7.0
+jupyter>=1.0.0
