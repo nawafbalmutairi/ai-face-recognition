@@ -1,0 +1,1103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AI Face Recognition & Gender Classification — Nawaf Almutairi</title>
+<meta name="description" content="Azure ML Designer pipeline benchmarking DenseNet vs ResNet for binary gender classification. Four configurations evaluated; DenseNet on real-time inference wins with 86.67% accuracy.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500;1,6..72,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#f5f1ea;
+  --bg-2:#ede7d8;
+  --ink:#0a0a0a;
+  --ink-2:#3a3a38;
+  --ink-3:#666460;
+  --mute:#94918a;
+  --line:#cdc6b7;
+  --line-2:#dad3c2;
+  --ember:#e64d2e;
+  --ember-d:#b53a1f;
+  --serif:'Newsreader',Georgia,serif;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --mono:'JetBrains Mono',Menlo,monospace;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:var(--sans);font-size:15px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  background-image:radial-gradient(circle at 1px 1px,rgba(10,10,10,0.03) 1px,transparent 0);
+  background-size:40px 40px;
+}
+
+/* ═══ MONOGRAM (NA symbol) ═══ */
+.monogram{
+  display:inline-block;
+  width:36px;height:36px;
+  position:relative;flex-shrink:0;
+}
+.monogram svg{width:100%;height:100%;display:block;}
+.monogram.lg{width:64px;height:64px;}
+
+/* ═══ SIDE RAIL ═══ */
+.rail{
+  position:fixed;top:0;left:0;
+  width:48px;height:100vh;
+  border-right:1px solid var(--line);
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:space-between;
+  padding:24px 0;background:var(--bg);z-index:100;
+}
+.rail-mono{margin-top:6px;}
+.rail-mono svg{width:28px;height:28px;}
+.rail-vert{
+  writing-mode:vertical-rl;transform:rotate(180deg);
+  font-family:var(--mono);font-size:10px;
+  color:var(--ink-2);letter-spacing:0.3em;text-transform:uppercase;
+  font-weight:500;
+}
+.rail-dot{
+  width:7px;height:7px;border-radius:50%;background:var(--ember);
+  animation:rail-pulse 2s infinite;
+}
+@keyframes rail-pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(230,77,46,0.5);}
+  50%{box-shadow:0 0 0 6px rgba(230,77,46,0);}
+}
+@media(max-width:780px){.rail{display:none;}}
+
+/* ═══ TOP NAV ═══ */
+.topnav{
+  position:sticky;top:0;z-index:80;
+  background:rgba(245,241,234,0.94);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+  padding:16px 56px 16px 80px;
+  display:flex;justify-content:space-between;align-items:center;
+  font-family:var(--mono);font-size:11px;
+  color:var(--ink-2);letter-spacing:0.04em;
+}
+@media(max-width:780px){.topnav{padding:14px 22px;}}
+.tn-back{
+  color:var(--ink);text-decoration:none;font-weight:500;
+  display:flex;align-items:center;gap:8px;
+  transition:color 0.2s;
+}
+.tn-back:hover{color:var(--ember);}
+.tn-meta{
+  color:var(--mute);letter-spacing:0.08em;text-transform:uppercase;
+  font-size:10px;font-weight:500;
+}
+.tn-meta .ember{color:var(--ember);}
+
+/* ═══ MAIN LAYOUT ═══ */
+.wrap{
+  padding-left:48px;
+}
+@media(max-width:780px){.wrap{padding-left:0;}}
+
+main{
+  max-width:1080px;
+  margin:0 auto;
+  padding:80px 56px 120px;
+}
+@media(max-width:780px){main{padding:48px 22px 80px;}}
+
+/* ═══ TYPOGRAPHY ═══ */
+h1.diss-title{
+  font-family:var(--serif);
+  font-size:clamp(40px,5.8vw,76px);
+  line-height:1.04;letter-spacing:-0.032em;
+  font-weight:400;
+  color:var(--ink);
+  margin-bottom:28px;
+  font-variation-settings:"opsz" 72;
+}
+h1.diss-title .it{font-style:italic;color:var(--ember);}
+
+h2.section-h{
+  font-family:var(--serif);
+  font-size:clamp(28px,3.6vw,46px);
+  line-height:1.1;letter-spacing:-0.022em;
+  font-weight:400;color:var(--ink);
+  margin:80px 0 28px;
+  font-variation-settings:"opsz" 36;
+  position:relative;
+  padding-left:80px;
+}
+h2.section-h::before{
+  content:attr(data-n);
+  position:absolute;left:0;top:14px;
+  font-family:var(--mono);font-size:10px;
+  color:var(--ember);letter-spacing:0.12em;
+  font-weight:600;text-transform:uppercase;
+}
+h2.section-h .it{font-style:italic;color:var(--ember);}
+@media(max-width:780px){
+  h2.section-h{padding-left:0;}
+  h2.section-h::before{position:static;display:block;margin-bottom:8px;}
+}
+
+h3.sub-h{
+  font-family:var(--serif);
+  font-size:clamp(22px,2.6vw,30px);
+  line-height:1.18;letter-spacing:-0.014em;
+  font-weight:500;color:var(--ink);
+  margin:40px 0 18px;
+}
+h3.sub-h .it{font-style:italic;color:var(--ember);}
+
+h4.subsub-h{
+  font-family:var(--mono);
+  font-size:11px;color:var(--ember);
+  letter-spacing:0.14em;text-transform:uppercase;
+  font-weight:600;
+  margin:28px 0 12px;
+}
+
+p{
+  font-family:var(--serif);
+  font-size:17px;line-height:1.65;
+  color:var(--ink-2);
+  margin-bottom:18px;
+  max-width:760px;
+  font-variation-settings:"opsz" 16;
+}
+p strong{color:var(--ink);font-weight:600;}
+p em{color:var(--ember);font-style:italic;}
+
+ul.story-list{
+  list-style:none;
+  padding:0;margin:18px 0 24px;
+  max-width:760px;
+}
+ul.story-list li{
+  font-family:var(--serif);
+  font-size:16px;line-height:1.55;color:var(--ink-2);
+  padding:12px 0 12px 56px;
+  border-bottom:1px solid var(--line);
+  position:relative;
+}
+ul.story-list li::before{
+  content:attr(data-n);
+  position:absolute;left:0;top:14px;
+  font-family:var(--mono);font-size:10px;color:var(--ember);
+  font-weight:600;letter-spacing:0.06em;
+}
+ul.story-list li strong{color:var(--ink);font-weight:600;}
+ul.story-list li em{color:var(--ember);font-style:italic;}
+
+/* Inline references */
+.ref{
+  font-family:var(--sans);font-size:12px;
+  color:var(--mute);vertical-align:super;
+  text-decoration:none;
+}
+.ref:hover{color:var(--ember);}
+
+/* Abstract block */
+.abstract{
+  background:var(--bg-2);border:1px solid var(--line);
+  padding:36px 40px;margin:0 0 40px;
+  position:relative;
+}
+@media(max-width:780px){.abstract{padding:24px;}}
+.abstract::before{
+  content:'— ABSTRACT';
+  position:absolute;top:-1px;left:-1px;
+  background:var(--ember);color:var(--bg);
+  font-family:var(--mono);font-size:9px;
+  letter-spacing:0.14em;font-weight:600;
+  padding:6px 14px;
+}
+.abstract p{
+  font-family:var(--serif);font-size:18px;
+  font-style:italic;line-height:1.62;
+  color:var(--ink);max-width:none;
+  margin-top:14px;margin-bottom:14px;
+  font-variation-settings:"opsz" 24;
+}
+.abstract p:last-child{margin-bottom:0;}
+.abstract p strong{font-style:normal;color:var(--ink);}
+
+/* ═══ HERO ═══ */
+.diss-hero{
+  margin-bottom:48px;
+}
+.diss-eyebrow{
+  font-family:var(--mono);font-size:11px;
+  color:var(--ember);letter-spacing:0.14em;
+  text-transform:uppercase;font-weight:600;
+  margin-bottom:24px;
+  display:flex;align-items:center;gap:14px;
+}
+.diss-eyebrow::before{
+  content:'';width:32px;height:1px;background:var(--ember);
+}
+.diss-meta-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1px;
+  background:var(--line);
+  border:1px solid var(--line);
+  margin-top:32px;
+}
+@media(max-width:780px){.diss-meta-grid{grid-template-columns:1fr 1fr;}}
+.dm-cell{
+  background:var(--bg);
+  padding:22px 24px;
+}
+.dm-label{
+  font-family:var(--mono);font-size:9px;
+  color:var(--mute);letter-spacing:0.12em;
+  text-transform:uppercase;margin-bottom:8px;
+}
+.dm-value{
+  font-family:var(--serif);font-size:18px;
+  color:var(--ink);line-height:1.2;
+  font-weight:500;letter-spacing:-0.01em;
+}
+.dm-value .it{color:var(--ember);font-style:italic;}
+
+/* ═══ KEY METRICS BANNER ═══ */
+.keystats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1px;
+  background:var(--line);
+  border:1px solid var(--line);
+  margin:40px 0;
+}
+@media(max-width:780px){.keystats{grid-template-columns:1fr 1fr;}}
+.ks-cell{
+  background:var(--bg-2);
+  padding:28px 24px;
+  text-align:left;
+}
+.ks-cell.winner{
+  background:rgba(230,77,46,0.07);
+  position:relative;
+}
+.ks-cell.winner::after{
+  content:'★';position:absolute;top:10px;right:14px;
+  color:var(--ember);font-size:12px;
+}
+.ks-label{
+  font-family:var(--mono);font-size:9px;
+  color:var(--mute);letter-spacing:0.12em;
+  text-transform:uppercase;margin-bottom:12px;
+}
+.ks-cell.winner .ks-label{color:var(--ember);}
+.ks-value{
+  font-family:var(--serif);font-size:48px;
+  color:var(--ink);line-height:1;letter-spacing:-0.028em;
+  font-weight:400;
+  font-variation-settings:"opsz" 72;
+}
+.ks-cell.winner .ks-value{
+  color:var(--ember);font-style:italic;
+}
+.ks-value .small{font-size:0.45em;color:var(--mute);font-weight:400;letter-spacing:0;font-style:normal;margin-left:2px;}
+.ks-sub{
+  font-family:var(--sans);font-size:11px;
+  color:var(--ink-3);margin-top:10px;line-height:1.4;
+}
+
+/* ═══ FIGURES ═══ */
+.fig-block{
+  margin:40px 0 56px;
+}
+.fig-frame{
+  background:var(--bg-2);
+  border:1px solid var(--line);
+  padding:1px;
+}
+.fig-cap{
+  display:flex;justify-content:space-between;
+  margin-top:14px;
+  font-family:var(--mono);font-size:10px;
+  color:var(--ink-3);letter-spacing:0.06em;
+  text-transform:uppercase;gap:14px;flex-wrap:wrap;
+}
+.fig-cap .label{color:var(--ember);font-weight:600;}
+.fig-cap .title{
+  font-family:var(--serif);font-style:italic;
+  font-size:13px;color:var(--ink-2);
+  text-transform:none;letter-spacing:0;
+  flex:1;text-align:right;line-height:1.4;
+}
+
+/* ═══ PIPELINE FLOW ═══ */
+.pipeline-viz{
+  background:var(--bg);padding:32px 28px;
+}
+.pipe-header{margin-bottom:24px;padding-bottom:14px;border-bottom:1px solid var(--line);}
+.pipe-title{
+  font-family:var(--mono);font-size:10px;color:var(--ember);
+  letter-spacing:0.12em;text-transform:uppercase;font-weight:600;margin-bottom:6px;
+}
+.pipe-sub{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--ink-3);line-height:1.4;}
+.pipe-flow{
+  display:grid;gap:28px 22px;align-items:stretch;
+}
+.pipe-flow.six{grid-template-columns:repeat(6,1fr);}
+.pipe-flow.five{grid-template-columns:repeat(5,1fr);}
+.pipe-flow.four{grid-template-columns:repeat(4,1fr);}
+.pl-step{
+  background:var(--bg-2);border:1px solid var(--line);
+  padding:14px 12px;
+  display:flex;flex-direction:column;gap:8px;
+  position:relative;min-height:140px;
+}
+.pl-step.danger{border-color:#b07260;background:rgba(176,114,96,0.06);}
+.pl-step.winner{border-color:var(--ember);background:rgba(230,77,46,0.05);}
+.pl-step-n{font-family:var(--mono);font-size:9px;color:var(--mute);letter-spacing:0.12em;font-weight:600;}
+.pl-step.danger .pl-step-n{color:#925248;}
+.pl-step.winner .pl-step-n{color:var(--ember);}
+.pl-step-name{font-family:var(--serif);font-size:16px;color:var(--ink);font-weight:500;letter-spacing:-0.012em;line-height:1.1;}
+.pl-step.winner .pl-step-name{color:var(--ember);font-style:italic;}
+.pl-step-detail{font-family:var(--sans);font-size:11px;color:var(--ink-3);line-height:1.45;flex:1;}
+.pl-step-status{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.04em;color:var(--mute);}
+.pl-step.danger .pl-step-status{color:#925248;}
+.pl-step.winner .pl-step-status{color:var(--ember);}
+.pl-step:not(:last-child)::after{
+  content:'→';position:absolute;right:-16px;top:50%;
+  transform:translateY(-50%);
+  color:var(--ember);font-family:var(--serif);font-size:15px;line-height:1;font-weight:400;
+}
+@media(max-width:780px){
+  .pipe-flow.six,.pipe-flow.five,.pipe-flow.four{grid-template-columns:1fr;}
+  .pl-step{min-height:auto;}
+  .pl-step:not(:last-child)::after{content:'↓';right:auto;left:50%;top:auto;bottom:-20px;transform:translateX(-50%);font-size:16px;}
+}
+
+/* ═══ R² HEATMAP ═══ */
+.r2-heatmap{background:var(--bg);padding:24px;}
+.r2h-head{margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--line);}
+.r2h-title{font-family:var(--mono);font-size:10px;color:var(--ember);letter-spacing:0.12em;text-transform:uppercase;font-weight:600;margin-bottom:6px;}
+.r2h-sub{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--ink-3);line-height:1.4;}
+.r2h-grid{display:grid;grid-template-columns:auto repeat(4,1fr);gap:3px;}
+.r2h-cell{padding:14px 6px;text-align:center;font-family:var(--mono);font-size:12px;display:flex;align-items:center;justify-content:center;min-height:44px;position:relative;}
+.r2h-corner{background:transparent;}
+.r2h-col-h{background:var(--ink);color:var(--bg);font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;padding:12px 6px;}
+.r2h-row-h{background:var(--ink);color:var(--bg);font-family:var(--sans);font-size:12px;font-weight:600;text-align:left;padding:0 14px;justify-content:flex-start;letter-spacing:-0.005em;}
+.r2h-val{font-weight:600;font-size:13px;}
+.r2h-val.v-neg-extreme{background:#8e3a32;color:#fff;}
+.r2h-val.v-neg-high{background:#b25a4f;color:#fff;}
+.r2h-val.v-neg-med{background:#d39288;color:var(--ink);}
+.r2h-val.v-neg-low{background:#e8c4be;color:var(--ink);}
+.r2h-val.v-pos-low{background:#c8d8c0;color:var(--ink);}
+.r2h-val.v-pos-med{background:#9bba8e;color:var(--ink);}
+.r2h-val.v-pos-high{background:#6f9961;color:#fff;}
+.r2h-val.winner{background:var(--ember);color:var(--bg);outline:3px solid var(--ember);outline-offset:-1px;z-index:1;}
+
+/* ═══ FULL METRICS TABLE ═══ */
+.metrics-table{
+  width:100%;
+  background:var(--bg-2);
+  border:1px solid var(--line);
+  border-collapse:collapse;
+  font-family:var(--mono);font-size:12px;
+  margin:8px 0;
+}
+.metrics-table thead th{
+  background:var(--ink);color:var(--bg);
+  padding:12px 14px;
+  text-align:left;font-weight:600;
+  letter-spacing:0.06em;font-size:10px;
+  text-transform:uppercase;
+}
+.metrics-table thead th.num{text-align:right;}
+.metrics-table tbody td{
+  padding:11px 14px;
+  border-bottom:1px solid var(--line);
+  color:var(--ink-2);
+}
+.metrics-table tbody td.num{text-align:right;font-weight:500;}
+.metrics-table tbody tr.winner{background:rgba(230,77,46,0.07);}
+.metrics-table tbody tr.winner td{color:var(--ember);font-weight:600;}
+.metrics-table tbody tr.winner td:first-child::before{content:'★ ';color:var(--ember);}
+.metrics-table tbody tr:last-child td{border-bottom:none;}
+.metrics-table td.tag{
+  font-family:var(--sans);font-weight:500;color:var(--ink);
+}
+
+/* ═══ CODE BLOCKS ═══ */
+.code-block{
+  background:var(--ink);color:#d4cdb8;
+  padding:22px 26px;
+  font-family:var(--mono);font-size:12.5px;line-height:1.6;
+  border:1px solid var(--ink);
+  margin:18px 0 28px;overflow-x:auto;
+}
+.code-block .kw{color:#e64d2e;}
+.code-block .str{color:#a8c4a0;}
+.code-block .num{color:#d4a86a;}
+.code-block .com{color:#7a7568;font-style:italic;}
+.code-block .fn{color:#d4cdb8;font-weight:600;}
+.code-caption{
+  font-family:var(--mono);font-size:10px;
+  color:var(--ink-3);letter-spacing:0.06em;
+  margin-bottom:8px;text-transform:uppercase;
+}
+.code-caption .label{color:var(--ember);font-weight:600;}
+
+/* ═══ CALLOUT BOX ═══ */
+.callout{
+  display:grid;grid-template-columns:auto 1fr;gap:18px;
+  padding:24px 28px;
+  background:rgba(230,77,46,0.04);
+  border:1px solid var(--ember);border-left-width:3px;
+  margin:32px 0;
+  align-items:center;
+}
+.callout-mark{
+  font-family:var(--serif);font-size:24px;
+  color:var(--ember);line-height:1;
+}
+.callout-text{
+  font-family:var(--serif);font-size:15.5px;
+  color:var(--ink-2);line-height:1.55;
+}
+.callout-text strong{color:var(--ink);font-weight:600;}
+.callout-text em{color:var(--ember);font-style:italic;}
+
+/* ═══ MODEL CARDS ═══ */
+.model-cards{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:14px;
+  margin:24px 0;
+}
+@media(max-width:780px){.model-cards{grid-template-columns:1fr;}}
+.mc-card{
+  background:var(--bg-2);
+  border:1px solid var(--line);
+  padding:24px 26px;
+}
+.mc-card.winner{
+  border-color:var(--ember);
+  background:rgba(230,77,46,0.05);
+  position:relative;
+}
+.mc-card.winner::after{
+  content:'★ winner';position:absolute;top:14px;right:18px;
+  font-family:var(--mono);font-size:10px;color:var(--ember);
+  letter-spacing:0.08em;font-weight:600;
+}
+.mc-name{
+  font-family:var(--serif);font-size:24px;
+  color:var(--ink);font-weight:500;letter-spacing:-0.018em;
+  margin-bottom:6px;
+}
+.mc-card.winner .mc-name{color:var(--ember);font-style:italic;}
+.mc-type{
+  font-family:var(--mono);font-size:10px;color:var(--mute);
+  letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;
+}
+.mc-desc{
+  font-family:var(--serif);font-size:14px;
+  color:var(--ink-2);line-height:1.55;margin-bottom:14px;
+}
+.mc-stats{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  padding-top:14px;border-top:1px solid var(--line);
+}
+.mc-stat-l{font-family:var(--mono);font-size:9px;color:var(--mute);letter-spacing:0.1em;text-transform:uppercase;}
+.mc-stat-v{font-family:var(--mono);font-size:13px;color:var(--ink);font-weight:600;margin-top:3px;}
+.mc-card.winner .mc-stat-v{color:var(--ember);}
+
+/* ═══ BI DASHBOARD RECREATION ═══ */
+.cd-dashboard{
+  background:var(--bg);
+  padding:36px 40px;
+}
+@media(max-width:780px){.cd-dashboard{padding:24px;}}
+.cd-d-head{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  padding-bottom:24px;border-bottom:1px solid var(--line);
+  margin-bottom:32px;gap:24px;flex-wrap:wrap;
+}
+.cd-d-name{font-family:var(--mono);font-size:12px;color:var(--ink);letter-spacing:0.04em;font-weight:600;display:flex;align-items:center;gap:10px;}
+.cd-d-icon{color:var(--ember);font-size:13px;}
+.cd-d-sub{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--ink-3);margin-top:6px;}
+.cd-d-status{font-family:var(--mono);font-size:10px;color:var(--ember);letter-spacing:0.12em;font-weight:600;display:flex;align-items:center;gap:8px;text-transform:uppercase;}
+.cd-d-status .dot{width:7px;height:7px;border-radius:50%;background:var(--ember);animation:rail-pulse 2s infinite;}
+.cd-d-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:36px;}
+@media(max-width:600px){.cd-d-metrics{grid-template-columns:1fr;}}
+.cd-d-metric{padding:22px;background:var(--bg-2);border:1px solid var(--line);position:relative;}
+.cd-d-metric.winner{background:rgba(230,77,46,0.05);border-color:var(--ember);}
+.cd-d-metric.winner::after{content:'★';position:absolute;top:12px;right:14px;color:var(--ember);font-size:13px;}
+.cd-d-m-lbl{font-family:var(--mono);font-size:9px;color:var(--mute);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px;}
+.cd-d-metric.winner .cd-d-m-lbl{color:var(--ember);}
+.cd-d-m-val{font-family:var(--serif);font-size:54px;line-height:1;letter-spacing:-0.035em;color:var(--ink);font-weight:400;}
+.cd-d-metric.winner .cd-d-m-val{font-style:italic;color:var(--ember);}
+.cd-d-m-unit{font-size:0.4em;color:var(--mute);font-weight:400;letter-spacing:0;font-style:normal;margin-left:2px;}
+.cd-d-section-h{font-family:var(--mono);font-size:10px;color:var(--ember);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:18px;font-weight:600;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;}
+.cd-d-section-h .sub{font-family:var(--serif);font-style:italic;text-transform:none;letter-spacing:0;color:var(--ink-3);font-size:13px;font-weight:400;}
+.cd-d-diverge{display:flex;flex-direction:column;gap:10px;margin-bottom:32px;}
+.cd-d-bar-row{display:grid;grid-template-columns:140px 1fr 70px;align-items:center;gap:14px;}
+@media(max-width:600px){.cd-d-bar-row{grid-template-columns:90px 1fr 60px;gap:8px;}}
+.cd-d-bar-name{font-family:var(--sans);font-size:13px;color:var(--ink-2);font-weight:500;text-align:right;}
+.cd-d-bar-row.winner .cd-d-bar-name{color:var(--ember);font-weight:600;}
+.cd-d-bar-row.winner .cd-d-bar-name::after{content:' ★';color:var(--ember);font-size:10px;}
+.cd-d-bar-track{position:relative;height:16px;background:var(--bg-2);border:1px solid var(--line);}
+.cd-d-bar-mid{position:absolute;left:50%;top:-5px;bottom:-5px;width:1px;background:var(--ink-2);transform:translateX(-50%);z-index:2;}
+.cd-d-bar-fill{position:absolute;top:0;bottom:0;width:0;transition:width 1.4s cubic-bezier(0.16,1,0.3,1);}
+.cd-d-bar-fill.pos{left:50%;background:#7a9d6e;}
+.cd-d-bar-fill.neg{right:50%;background:#b07260;}
+.cd-d-bar-row.winner .cd-d-bar-fill.pos{background:var(--ember);}
+.cd-d-bar-val{font-family:var(--mono);font-size:13px;font-weight:600;text-align:left;}
+.cd-d-bar-val.pos{color:#5a7d52;}
+.cd-d-bar-val.neg{color:#925248;}
+.cd-d-bar-row.winner .cd-d-bar-val.pos{color:var(--ember);}
+
+/* ═══ TIME SPLIT VISUALIZATION ═══ */
+.timesplit{
+  background:var(--bg-2);border:1px solid var(--line);
+  padding:24px;
+}
+.ts-label{font-family:var(--mono);font-size:10px;color:var(--ember);letter-spacing:0.12em;text-transform:uppercase;font-weight:600;margin-bottom:18px;}
+.ts-bar-container{
+  display:grid;grid-template-columns:70% 30%;
+  gap:2px;height:46px;margin:14px 0 18px;
+}
+.ts-train{
+  background:var(--ink);color:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:11px;font-weight:600;
+  letter-spacing:0.06em;text-transform:uppercase;
+}
+.ts-test{
+  background:var(--ember);color:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:11px;font-weight:600;
+  letter-spacing:0.06em;text-transform:uppercase;
+}
+.ts-axis{
+  display:flex;justify-content:space-between;
+  font-family:var(--mono);font-size:11px;color:var(--ink-3);
+  font-weight:500;
+}
+.ts-axis-tick{position:relative;padding-top:8px;}
+.ts-axis-tick::before{content:'|';color:var(--line);position:absolute;top:-6px;left:50%;transform:translateX(-50%);}
+
+/* ═══ DISCUSSION SUB-BOX ═══ */
+.disc-box{
+  background:var(--bg-2);
+  border-left:3px solid var(--ember);
+  padding:20px 26px;
+  margin:24px 0;
+}
+.disc-box h4{
+  font-family:var(--mono);font-size:11px;
+  color:var(--ember);letter-spacing:0.14em;
+  text-transform:uppercase;font-weight:600;
+  margin-bottom:12px;
+}
+.disc-box p{margin-bottom:10px;font-size:15.5px;}
+.disc-box p:last-child{margin-bottom:0;}
+
+/* ═══ REFERENCES LIST ═══ */
+.refs{
+  margin-top:32px;
+}
+.refs ol{
+  list-style:none;counter-reset:refnum;padding:0;
+}
+.refs ol li{
+  counter-increment:refnum;
+  padding:14px 0 14px 48px;
+  position:relative;
+  border-bottom:1px solid var(--line);
+  font-family:var(--sans);font-size:13px;
+  color:var(--ink-2);line-height:1.55;
+  max-width:none;
+}
+.refs ol li::before{
+  content:'[' counter(refnum) ']';
+  position:absolute;left:0;top:14px;
+  font-family:var(--mono);font-size:11px;
+  color:var(--ember);font-weight:600;
+}
+.refs ol li em{color:var(--ink);font-style:italic;}
+.refs ol li a{color:var(--ember);text-decoration:none;word-break:break-all;}
+.refs ol li a:hover{text-decoration:underline;}
+
+/* ═══ TOC ═══ */
+.toc{
+  margin:32px 0 56px;
+  border:1px solid var(--line);
+  background:var(--bg-2);
+  padding:28px 32px;
+}
+.toc-h{
+  font-family:var(--mono);font-size:10px;
+  color:var(--ember);letter-spacing:0.14em;
+  text-transform:uppercase;font-weight:600;
+  margin-bottom:18px;
+}
+.toc ol{
+  list-style:none;padding:0;counter-reset:tocnum;
+  column-count:2;column-gap:40px;
+}
+@media(max-width:780px){.toc ol{column-count:1;}}
+.toc ol li{
+  counter-increment:tocnum;
+  padding:8px 0 8px 32px;
+  position:relative;
+  break-inside:avoid;
+}
+.toc ol li::before{
+  content:counter(tocnum,upper-roman) '.';
+  position:absolute;left:0;top:9px;
+  font-family:var(--mono);font-size:10px;
+  color:var(--ember);font-weight:600;letter-spacing:0.04em;
+}
+.toc ol li a{
+  font-family:var(--serif);font-size:15px;
+  color:var(--ink-2);text-decoration:none;
+  transition:color 0.2s;
+}
+.toc ol li a:hover{color:var(--ember);}
+
+/* ═══ FOOTER ═══ */
+.diss-footer{
+  margin-top:120px;
+  padding-top:48px;border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;
+  align-items:flex-end;gap:32px;flex-wrap:wrap;
+}
+.df-left{
+  font-family:var(--mono);font-size:10px;
+  color:var(--mute);letter-spacing:0.1em;
+  text-transform:uppercase;line-height:1.7;
+}
+.df-left .ember{color:var(--ember);}
+.df-back{
+  font-family:var(--mono);font-size:12px;
+  color:var(--ink);text-decoration:none;
+  letter-spacing:0.04em;font-weight:600;
+  border:1px solid var(--ink);
+  padding:14px 22px;
+  transition:all 0.2s;
+}
+.df-back:hover{background:var(--ink);color:var(--bg);}
+
+/* ═══ RESPONSIVE BACKDROP ═══ */
+::selection{background:var(--ember);color:var(--bg);}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute;">
+  <symbol id="na" viewBox="0 0 40 40">
+    <rect x="0.5" y="0.5" width="39" height="39" fill="none" stroke="#e64d2e" stroke-width="1"/>
+    <line x1="2" y1="20" x2="38" y2="20" stroke="#e64d2e" stroke-width="1"/>
+    <path d="M 8 17 L 8 4 L 11 4 L 21 14 L 21 4 L 24 4 L 24 17 L 21 17 L 11 7 L 11 17 Z" fill="#0a0a0a"/>
+    <path d="M 14 36 L 19 23 L 22 23 L 27 36 L 24 36 L 23 33 L 18 33 L 17 36 Z M 19 31 L 22 31 L 20.5 26 Z" fill="#e64d2e" font-style="italic"/>
+  </symbol>
+</svg>
+
+<aside class="rail" aria-label="Brand rail">
+  <a href="https://nawafbalmutairi.github.io/" class="rail-mono" aria-label="Home"><span class="monogram"><svg><use href="#na"/></svg></span></a>
+  <span class="rail-vert">NAWAF ALMUTAIRI · FACE RECOGNITION · AZURE ML</span>
+  <span class="rail-dot" aria-hidden="true"></span>
+</aside>
+<div class="wrap">
+<nav class="topnav">
+  <a href="https://nawafbalmutairi.github.io/" class="tn-back">← Back to portfolio</a>
+  <span class="tn-meta"><span class="ember">2024</span> · Deep Learning · Azure ML</span>
+</nav>
+
+<main>
+
+  <header class="diss-hero">
+    <div class="diss-eyebrow">Deep Learning Project · Azure ML Designer · Northumbria University</div>
+    <h1 class="diss-title">
+      AI Face Recognition &amp;<br>
+      <span class="it">Gender Classification.</span>
+    </h1>
+    <p style="font-size:18.5px;color:var(--ink-3);max-width:760px;">
+      An Azure ML Designer pipeline benchmarking <strong>DenseNet</strong> against <strong>ResNet</strong> for binary gender classification on facial images, evaluated in both training and real-time inference modes. The winning configuration — <em>DenseNet on real-time inference</em> — achieves <strong>86.67%</strong> accuracy across precision, recall, and accuracy on an unseen 30-image evaluation set.
+    </p>
+
+    <div class="diss-meta-grid">
+      <div class="dm-cell">
+        <div class="dm-label">Author</div>
+        <div class="dm-value">Nawaf Almutairi</div>
+      </div>
+      <div class="dm-cell">
+        <div class="dm-label">Cloud</div>
+        <div class="dm-value">Azure <span class="it">ML Designer</span></div>
+      </div>
+      <div class="dm-cell">
+        <div class="dm-label">Framework</div>
+        <div class="dm-value">PyTorch<br><span style="font-size:12px;color:var(--mute);font-family:var(--mono);">DenseNet · ResNet</span></div>
+      </div>
+      <div class="dm-cell">
+        <div class="dm-label">Year</div>
+        <div class="dm-value">2024</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="abstract">
+    <p>
+      This project benchmarks two convolutional-neural-network architectures — <strong>DenseNet</strong> (densely-connected) and <strong>ResNet</strong> (residual) — on the task of binary gender classification from facial images. Both architectures are well-established baselines in computer vision, with distinct connectivity patterns that should manifest differently when training data is scarce.
+    </p>
+    <p>
+      Two datasets were used: a Kaggle <em>gender_images</em> training set of 100 photos (balanced 50M / 50F), and a self-curated <em>Nawaf_data_inference</em> set of 30 photos (15M / 15F) used to evaluate <em>real-world generalisation</em>. Each architecture was evaluated in two modes — training pipeline and real-time inference — producing <strong>four configurations</strong> total. The Azure ML Designer pipelines for both architectures were structurally identical except for the model component, isolating <em>architecture choice</em> as the sole variable.
+    </p>
+    <p>
+      DenseNet won both modes; the strongest configuration was <strong>DenseNet on real-time inference at 0.8667</strong> across all three evaluation metrics — a ~7-point improvement over ResNet on the same unseen set. The findings argue that dense connectivity preserves features more effectively than residual connections on small datasets, and that real-world generalisation is a sharper test of model quality than within-distribution training accuracy.
+    </p>
+  </div>
+
+  <div class="keystats">
+    <div class="ks-cell winner">
+      <div class="ks-label">DenseNet · real-time inference</div>
+      <div class="ks-value">86.7<span class="small">%</span></div>
+      <div class="ks-sub">winning configuration</div>
+    </div>
+    <div class="ks-cell">
+      <div class="ks-label">DenseNet vs ResNet gap</div>
+      <div class="ks-value">~7<span class="small">pts</span></div>
+      <div class="ks-sub">consistent across modes</div>
+    </div>
+    <div class="ks-cell">
+      <div class="ks-label">Configurations tested</div>
+      <div class="ks-value">4</div>
+      <div class="ks-sub">2 architectures × 2 modes</div>
+    </div>
+    <div class="ks-cell">
+      <div class="ks-label">Images processed</div>
+      <div class="ks-value">130</div>
+      <div class="ks-sub">100 training + 30 inference</div>
+    </div>
+  </div>
+
+  <nav class="toc" aria-label="Table of contents">
+    <div class="toc-h">— Contents</div>
+    <ol>
+      <li><a href="#introduction">Introduction</a></li>
+      <li><a href="#litreview">Related Work</a></li>
+      <li><a href="#data">Data &amp; Preprocessing</a></li>
+      <li><a href="#pipeline">Azure ML Pipeline</a></li>
+      <li><a href="#models">Architectures Compared</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#discussion">Discussion</a></li>
+      <li><a href="#limitations">Limitations &amp; Future Work</a></li>
+      <li><a href="#conclusion">Conclusion</a></li>
+    </ol>
+  </nav>
+
+  <section id="introduction">
+    <h2 class="section-h" data-n="§ 01">Introduction.</h2>
+
+    <p>
+      Facial-image classification is one of the most-studied problems in computer vision, and gender classification is among the simplest binary variants. Yet the question of <em>which architecture is best</em> for small datasets — not the ImageNet-scale academic case, but the small-organisational-data case — is less settled. A 100-image Kaggle set sits in this regime.
+    </p>
+
+    <p>
+      This project sets up a tightly controlled comparison: same preprocessing, same training procedure, same evaluation protocol — only the architecture changes. DenseNet's dense connectivity and ResNet's residual connections represent two different design philosophies for combating vanishing gradients in deep networks. On a small dataset, which wins?
+    </p>
+
+    <h3 class="sub-h"><span class="it">Research questions.</span></h3>
+    <ul class="story-list">
+      <li data-n="RQ1">Which architecture — DenseNet or ResNet — generalises better on a 100-image facial dataset?</li>
+      <li data-n="RQ2">Does <strong>real-time inference on unseen data</strong> tell a different story than training-set evaluation?</li>
+      <li data-n="RQ3">Can the entire experiment be run end-to-end inside Azure ML Designer, leveraging cloud GPU compute and visual pipeline construction?</li>
+    </ul>
+  </section>
+
+  <section id="litreview">
+    <h2 class="section-h" data-n="§ 02">Related Work.</h2>
+
+    <h3 class="sub-h">DenseNet — <span class="it">dense connectivity.</span></h3>
+    <p>
+      Huang et al. (2017) introduced DenseNet with the principle that every layer connects to every other layer in a feed-forward fashion. The intuition: <em>feature reuse</em>. By concatenating earlier feature maps into later layers, DenseNet preserves information that would otherwise be lost through deep transformation chains. This is particularly valuable when training data is scarce — features that the network is unlikely to relearn from scratch are kept available.
+    </p>
+
+    <h3 class="sub-h">ResNet — <span class="it">residual connections.</span></h3>
+    <p>
+      He et al. (2016) introduced ResNet with skip connections that add (rather than concatenate) earlier outputs. The mechanism enables training of much deeper networks by giving gradients a direct path back through the architecture. ResNet became the default backbone for many computer-vision tasks and remains a strong baseline.
+    </p>
+
+    <h3 class="sub-h">The <span class="it">small-data regime.</span></h3>
+    <p>
+      Most published comparisons of DenseNet vs ResNet use ImageNet (1.2M images) or larger benchmarks. Their behaviour on small datasets is less studied. Intuition from the architecture descriptions suggests DenseNet should have an edge on small data — feature reuse is more valuable when there are few examples to learn from. This project tests that intuition empirically on a 100-image facial set.
+    </p>
+  </section>
+
+  <section id="data">
+    <h2 class="section-h" data-n="§ 03">Data &amp; Preprocessing.</h2>
+
+    <h3 class="sub-h">Two <span class="it">datasets.</span></h3>
+    <ul class="story-list">
+      <li data-n="Train"><strong>gender_images</strong> (Kaggle) — 100 photos, balanced 50M / 50F. Source: a public Kaggle dataset. Used for training and within-distribution evaluation.</li>
+      <li data-n="Test"><strong>Nawaf_data_inference</strong> (self-curated) — 30 photos, balanced 15M / 15F. Used purely for real-time inference, to test generalisation to faces the model has never seen and which weren't sampled from the same source as training.</li>
+    </ul>
+
+    <h3 class="sub-h">Preprocessing <span class="it">held constant.</span></h3>
+    <p>
+      Both architectures received <em>identical</em> preprocessing — same Convert to Image Directory component, same 70/30 train/test split, then a further 70/30 train/val split, and the same Init Image Transformation chain applied to all three partitions. This is the foundation of the experimental design: <strong>architecture is the only variable</strong>.
+    </p>
+  </section>
+
+  <section id="pipeline">
+    <h2 class="section-h" data-n="§ 04">Azure ML Pipeline.</h2>
+
+    <p>
+      Azure ML Designer is a drag-and-drop interface for ML pipelines on top of Azure compute. Two pipelines were built: a training pipeline (5 stages) and a real-time inference pipeline (4 stages, reusing the trained model from pipeline 1).
+    </p>
+
+    <h3 class="sub-h">Training pipeline — <span class="it">5 stages.</span></h3>
+
+    <div class="fig-block">
+      <div class="fig-frame">
+        <div class="pipeline-viz">
+          <div class="pipe-header">
+            <div class="pipe-title">Training Pipeline · gender_images → trained model</div>
+            <div class="pipe-sub">Identical for both DenseNet and ResNet; the only swapped component is the model.</div>
+          </div>
+          <div class="pipe-flow five">
+            <div class="pl-step">
+              <div class="pl-step-n">01.</div>
+              <div class="pl-step-name">Dataset</div>
+              <div class="pl-step-detail">gender_images — Kaggle, 100 photos (50M / 50F).</div>
+              <div class="pl-step-status">⏵ 100 imgs</div>
+            </div>
+            <div class="pl-step">
+              <div class="pl-step-n">02.</div>
+              <div class="pl-step-name">Convert &amp; Split</div>
+              <div class="pl-step-detail">Convert to Image Directory · 70/30 train/test, then 70/30 train/val.</div>
+              <div class="pl-step-status">⏵ azure</div>
+            </div>
+            <div class="pl-step">
+              <div class="pl-step-n">03.</div>
+              <div class="pl-step-name">Transform</div>
+              <div class="pl-step-detail">Init Image Transformation + Apply Transformation across train / val / test.</div>
+              <div class="pl-step-status">⏵ identical</div>
+            </div>
+            <div class="pl-step">
+              <div class="pl-step-n">04.</div>
+              <div class="pl-step-name">Train (PyTorch)</div>
+              <div class="pl-step-detail">Train PyTorch Model on GPU compute — DenseNet or ResNet.</div>
+              <div class="pl-step-status">⏵ gpu</div>
+            </div>
+            <div class="pl-step winner">
+              <div class="pl-step-n">05.</div>
+              <div class="pl-step-name">Score &amp; Evaluate</div>
+              <div class="pl-step-detail">Score Image Model → Evaluate Model · precision · recall · accuracy.</div>
+              <div class="pl-step-status">★ metrics out</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fig-cap">
+        <span class="label">Fig. 01</span>
+        <span class="title">Training pipeline · The five-stage flow from raw images to trained model and evaluation.</span>
+      </div>
+    </div>
+
+    <h3 class="sub-h">Real-time inference pipeline — <span class="it">4 stages.</span></h3>
+
+    <div class="fig-block">
+      <div class="fig-frame">
+        <div class="pipeline-viz">
+          <div class="pipe-header">
+            <div class="pipe-title">Real-time Inference Pipeline · Trained model → unseen evaluation</div>
+            <div class="pipe-sub">The trained DenseNet / ResNet weights are reused; new dataset, fresh evaluation.</div>
+          </div>
+          <div class="pipe-flow four">
+            <div class="pl-step">
+              <div class="pl-step-n">01.</div>
+              <div class="pl-step-name">New Dataset</div>
+              <div class="pl-step-detail">Nawaf_data_inference — 30 self-curated photos.</div>
+              <div class="pl-step-status">⏵ 30 imgs</div>
+            </div>
+            <div class="pl-step">
+              <div class="pl-step-n">02.</div>
+              <div class="pl-step-name">Convert &amp; Transform</div>
+              <div class="pl-step-detail">Same image-directory conversion and transformation chain.</div>
+              <div class="pl-step-status">⏵ azure</div>
+            </div>
+            <div class="pl-step">
+              <div class="pl-step-n">03.</div>
+              <div class="pl-step-name">Score (trained model)</div>
+              <div class="pl-step-detail">Score Image Model loads weights from the trained DenseNet / ResNet.</div>
+              <div class="pl-step-status">⏵ inference</div>
+            </div>
+            <div class="pl-step winner">
+              <div class="pl-step-n">04.</div>
+              <div class="pl-step-name">Evaluate</div>
+              <div class="pl-step-detail">Precision · recall · accuracy on 30 unseen photos.</div>
+              <div class="pl-step-status">★ 86.67%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fig-cap">
+        <span class="label">Fig. 02</span>
+        <span class="title">Inference pipeline · The four-stage flow applying trained models to unseen data.</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="models">
+    <h2 class="section-h" data-n="§ 05">Architectures Compared.</h2>
+
+    <div class="model-cards">
+      <div class="mc-card winner">
+        <div class="mc-name">DenseNet</div>
+        <div class="mc-type">Densely-connected CNN</div>
+        <div class="mc-desc">
+          Every layer connects to every other layer in a feed-forward fashion via concatenation. Feature maps from earlier layers are reused throughout the network, preserving information that would otherwise be lost. Stronger feature reuse → better generalisation on small datasets.
+        </div>
+        <div class="mc-stats">
+          <div><div class="mc-stat-l">Best mode</div><div class="mc-stat-v">Real-time</div></div>
+          <div><div class="mc-stat-l">Best metric</div><div class="mc-stat-v">0.8667</div></div>
+        </div>
+      </div>
+
+      <div class="mc-card">
+        <div class="mc-name">ResNet</div>
+        <div class="mc-type">Residual CNN</div>
+        <div class="mc-desc">
+          Skip connections add earlier outputs to later layers, providing a direct gradient path through the network. Default backbone for many computer-vision tasks. May need larger training sets to fully exploit its representational capacity.
+        </div>
+        <div class="mc-stats">
+          <div><div class="mc-stat-l">Best mode</div><div class="mc-stat-v">Real-time</div></div>
+          <div><div class="mc-stat-l">Best metric</div><div class="mc-stat-v">0.8000</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="results">
+    <h2 class="section-h" data-n="§ 06">Results.</h2>
+
+    <p>
+      Four configurations were evaluated end-to-end. Each row of the table below is a separate Azure ML Designer pipeline run with identical preprocessing.
+    </p>
+
+    <table class="metrics-table">
+      <thead>
+        <tr>
+          <th>Configuration</th>
+          <th class="num">Precision</th>
+          <th class="num">Recall</th>
+          <th class="num">Accuracy</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>DenseNet · Training pipeline</td><td class="num">0.8000</td><td class="num">0.8000</td><td class="num">0.8000</td></tr>
+        <tr><td>ResNet · Training pipeline</td><td class="num">0.7376</td><td class="num">0.7333</td><td class="num">0.7333</td></tr>
+        <tr class="winner"><td>DenseNet · Real-time inference</td><td class="num">0.8667</td><td class="num">0.8667</td><td class="num">0.8667</td></tr>
+        <tr><td>ResNet · Real-time inference</td><td class="num">0.8000</td><td class="num">0.8000</td><td class="num">0.8000</td></tr>
+      </tbody>
+    </table>
+
+    <p style="margin-top:24px;">
+      Three patterns are visible in the results:
+    </p>
+
+    <ul class="story-list">
+      <li data-n="01"><strong>DenseNet wins both modes.</strong> A ~6.7-point gap in training and a ~6.7-point gap in real-time inference — consistent direction across both evaluation regimes.</li>
+      <li data-n="02"><strong>DenseNet improves on the unseen set.</strong> 0.80 → 0.87 from training to real-time inference. This is unusual — typically generalisation is harder than within-distribution evaluation, not easier. The 30-image inference set may simply be more representative than the training-set holdout.</li>
+      <li data-n="03"><strong>Errors are balanced across classes.</strong> Precision, recall, and accuracy all land at the same value for each configuration — male and female misclassifications happen at equal rates, not skewed.</li>
+    </ul>
+  </section>
+
+  <section id="discussion">
+    <h2 class="section-h" data-n="§ 07">Discussion.</h2>
+
+    <h3 class="sub-h">Why DenseNet wins on <span class="it">small data.</span></h3>
+    <p>
+      The intuition from the architecture design holds empirically here: DenseNet's feature concatenation preserves information that residual connections might lose. On a 100-image training set, the network has too few examples to relearn lost features from scratch — every preserved feature map is valuable. ResNet's deeper architecture, designed for the abundance of data in ImageNet-scale tasks, doesn't get to express its potential.
+    </p>
+
+    <h3 class="sub-h">Why <span class="it">real-time inference</span> beats training-set evaluation.</h3>
+    <p>
+      DenseNet's 0.80 (training holdout) → 0.87 (real-time inference) jump is unusual. Two explanations:
+    </p>
+    <ul class="story-list">
+      <li data-n="01"><strong>The training-set holdout was harder.</strong> A 30-photo split from 100 mixed Kaggle photos may have included edge cases (blurry, unusual angles, low light) that the self-curated inference set doesn't have.</li>
+      <li data-n="02"><strong>The inference set is closer to the training distribution than expected.</strong> Self-curated photos taken with consistent lighting and framing may sit more cleanly within the learned decision boundary than the messier Kaggle photos.</li>
+    </ul>
+    <p>
+      Either way, the headline finding — DenseNet beats ResNet by ~7 points across modes — is robust.
+    </p>
+
+    <div class="disc-box">
+      <h4>Why this experiment is well-designed</h4>
+      <p>
+        A common mistake in ML benchmarks is <em>changing more than one thing per experiment</em>. Different preprocessing, different optimiser, different architecture, all at once. The result can't isolate which change drove the metric movement.
+      </p>
+      <p>
+        This project deliberately holds everything constant except the architecture — same Convert to Image Directory, same 70/30 splits, same Init + Apply Image Transformation, same PyTorch training step. <strong>That's what makes the 6.7-point gap meaningful.</strong>
+      </p>
+    </div>
+  </section>
+
+  <section id="limitations">
+    <h2 class="section-h" data-n="§ 08">Limitations &amp; Future Work.</h2>
+
+    <ul class="story-list">
+      <li data-n="01"><strong>Tiny dataset.</strong> 130 images total is far below modern CV-benchmark norms. A 30-image inference set is too small to claim a definitive winner — confidence intervals on these accuracies are wide. A proper benchmark would use 1000+ unseen images.</li>
+      <li data-n="02"><strong>Single random seed.</strong> Each configuration was run once. Multiple seeds + averaged metrics would distinguish architecture effects from initialisation luck.</li>
+      <li data-n="03"><strong>No data augmentation.</strong> Image augmentation (flips, rotations, colour jitter) typically helps small-dataset training. Future iterations should add an augmentation step to the Init Image Transformation component.</li>
+      <li data-n="04"><strong>Binary classification only.</strong> Multi-class or fine-grained tasks (age estimation, expression recognition) may produce different architecture orderings.</li>
+    </ul>
+
+    <h3 class="sub-h">Future <span class="it">directions.</span></h3>
+    <p>
+      Three obvious extensions: (i) scale the dataset to 1000+ images and re-run to confirm the architectural ordering; (ii) add a Vision Transformer (ViT) baseline to compare against modern attention-based architectures; (iii) deploy the winning DenseNet model as an Azure ML endpoint and measure inference latency under realistic API traffic.
+    </p>
+  </section>
+
+  <section id="conclusion">
+    <h2 class="section-h" data-n="§ 09">Conclusion.</h2>
+
+    <p>
+      The three research questions are answered. <strong>RQ1</strong>: DenseNet wins both modes on this 100-image facial dataset, beating ResNet by ~7 points across all three evaluation metrics. <strong>RQ2</strong>: Yes — real-time inference on the unseen 30-image set tells a slightly different story than training-set evaluation; DenseNet actually <em>improves</em> on the inference set, a sign of strong feature transfer rather than overfitting. <strong>RQ3</strong>: Yes — the entire experiment runs end-to-end inside Azure ML Designer with no custom code, demonstrating that cloud visual-pipeline tools can match the rigour of code-first ML workflows for the right class of problem.
+    </p>
+
+    <p>
+      The practical takeaway: on small facial datasets, prefer DenseNet for feature reuse; design experiments to test <em>generalisation</em>, not just within-distribution accuracy; and use Azure ML Designer when the value of visual pipeline construction outweighs the flexibility of custom Python code.
+    </p>
+  </section>
+
+
+  <footer class="diss-footer">
+    <div class="df-left">
+      Nawaf Almutairi · <span class="ember">Azure ML</span><br>
+      Northumbria University · Newcastle upon Tyne<br>
+      Completed 2024
+    </div>
+    <a href="https://nawafbalmutairi.github.io/" class="df-back">← Back to portfolio</a>
+  </footer>
+
+</main>
+</div>
+
+<script>
+var divergeObs=new IntersectionObserver(function(e){
+  e.forEach(function(en){if(en.isIntersecting){
+    en.target.querySelectorAll('.cd-d-bar-fill').forEach(function(b,i){
+      setTimeout(function(){b.style.width=b.dataset.w+'%';},i*150);
+    });
+    divergeObs.unobserve(en.target);
+  }});
+},{threshold:0.25});
+document.querySelectorAll('.cd-d-diverge').forEach(function(g){divergeObs.observe(g);});
+</script>
+
+</body>
+</html>
