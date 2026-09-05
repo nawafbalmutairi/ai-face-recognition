@@ -8,22 +8,22 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500;1,6..72,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..800;1,6..72,300..800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
 :root{
-  --bg:#05070a;
-  --bg-2:#0b1119;
-  --ink:#e9ecf2;
-  --ink-2:#9fabba;
-  --ink-3:#7c8898;
-  --mute:#6c7a8a;
-  --line:rgba(233,236,242,.14);
-  --line-2:rgba(233,236,242,.08);
+  --bg:#f6f7f9;
+  --bg-2:#eceff3;
+  --ink:#10141a;
+  --ink-2:#454f5c;
+  --ink-3:#5c6672;
+  --mute:#7b8794;
+  --line:#d7dce3;
+  --line-2:#e6eaef;
   --ember:#e64d2e;
-  --ember-d:#ff7a5c;
+  --ember-d:#b8391f;
   --serif:'Newsreader',Georgia,serif;
-  --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --sans:'Instrument Sans',-apple-system,BlinkMacSystemFont,sans-serif;
   --mono:'JetBrains Mono',Menlo,monospace;
 }
 
@@ -692,39 +692,37 @@ ul.story-list li em{color:var(--ember);font-style:italic;}
 /* ═══ RESPONSIVE BACKDROP ═══ */
 ::selection{background:var(--ember);color:var(--bg);}
 
-/* ═══ DARK GROUND CORRECTIONS ═══
-   These components were written against a cream page: they set light fills
-   with dark text, or used var(--ink) as a background. Inverting the tokens
-   alone would leave light-on-light. Rules below come last, so they win. */
-.code-block{background:#0b1119;color:#c9d3e0;border:1px solid var(--line)}
-.code-block .str{color:#4ade9b}
-.code-block .num{color:#e8a33d}
-.code-block .com{color:#6c7a8a}
-.code-block .fn{color:#c9d3e0}
-.r2h-col-h,.r2h-row-h{background:#121a24;color:var(--ink-2)}
+/* ═══ LIGHT GROUND CORRECTIONS ═══
+   The page is back on paper. Code blocks stay dark on purpose — a dark
+   listing on a light page reads as a listing — and the diverging heatmap is
+   re-keyed so tint carries magnitude with dark text over it. */
+.code-block{background:#10141a;color:#dfe6ee;border:1px solid #10141a}
+.code-block .str{color:#7fd8a8}
+.code-block .num{color:#e8b06a}
+.code-block .com{color:#8892a0}
+.code-block .fn{color:#dfe6ee}
+.r2h-col-h,.r2h-row-h{background:#eceff3;color:var(--ink-2)}
 .cd-d-bar-mid{background:var(--line)}
-.ts-train{background:#38bdf8}
+.ts-train{background:#0d7d74}
 
-/* Diverging heatmap re-keyed for a dark ground: tint carries magnitude,
-   text stays legible at every step. */
-.r2h-val.v-pos-low{background:rgba(74,222,155,.14);color:#8fe9c0}
-.r2h-val.v-pos-med{background:rgba(74,222,155,.26);color:#c2f5dd}
-.r2h-val.v-pos-high{background:rgba(74,222,155,.44);color:#eafff5}
-.r2h-val.v-neg-low{background:rgba(255,107,122,.14);color:#ffb3bb}
-.r2h-val.v-neg-med{background:rgba(255,107,122,.26);color:#ffc9cf}
-.r2h-val.v-neg-high{background:rgba(255,107,122,.44);color:#ffe1e4}
-.r2h-val.v-neg-extreme{background:rgba(255,107,122,.60);color:#ffffff}
+.r2h-val.v-pos-low{background:rgba(13,125,116,.12);color:#0a5f58}
+.r2h-val.v-pos-med{background:rgba(13,125,116,.26);color:#08514b}
+.r2h-val.v-pos-high{background:rgba(13,125,116,.44);color:#053b36}
+.r2h-val.v-neg-low{background:rgba(192,57,43,.10);color:#9e2f22}
+.r2h-val.v-neg-med{background:rgba(192,57,43,.22);color:#8a291e}
+.r2h-val.v-neg-high{background:rgba(192,57,43,.36);color:#7a231a}
+.r2h-val.v-neg-extreme{background:rgba(192,57,43,.52);color:#ffffff}
 .r2h-val.winner{background:var(--ember);color:#ffffff}
-.cd-d-bar-val.pos{color:#4ade9b}
-.cd-d-bar-val.neg{color:#ff6b7a}
-.pl-step.danger .pl-step-n,.pl-step.danger .pl-step-status{color:#ff6b7a}
+.cd-d-bar-val.pos{color:#0d7d74}
+.cd-d-bar-val.neg{color:#c0392b}
+.pl-step.danger .pl-step-n,.pl-step.danger .pl-step-status{color:#c0392b}
 
 /* ═══ portfolio chrome ═══ */
 .home-link{
   position:fixed;top:0;left:0;right:0;z-index:200;
   display:flex;justify-content:space-between;align-items:center;gap:20px;
   padding:12px clamp(16px,4vw,40px);
-  background:rgba(5,7,10,.86);
+  background:rgba(246,247,249,.92);
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
   border-bottom:1px solid var(--line);text-decoration:none;
 }
@@ -734,7 +732,10 @@ ul.story-list li em{color:var(--ember);font-style:italic;}
   text-transform:uppercase;color:var(--mute);transition:color .2s}
 .home-link:hover .hl-back{color:var(--ember)}
 body{padding-top:46px}
-:focus-visible{outline:2px solid #38bdf8;outline-offset:3px}
+:focus-visible{outline:2px solid var(--ember);outline-offset:3px}
+
+/* Screenshots reuse the page's existing figure component. */
+.fig-frame img{display:block;width:100%;height:auto}
 </style>
 </head>
 <body>
