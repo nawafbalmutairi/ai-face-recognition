@@ -12,16 +12,16 @@
 
 <style>
 :root{
-  --bg:#f5f1ea;
-  --bg-2:#ede7d8;
-  --ink:#0a0a0a;
-  --ink-2:#3a3a38;
-  --ink-3:#666460;
-  --mute:#94918a;
-  --line:#cdc6b7;
-  --line-2:#dad3c2;
+  --bg:#05070a;
+  --bg-2:#0b1119;
+  --ink:#e9ecf2;
+  --ink-2:#9fabba;
+  --ink-3:#7c8898;
+  --mute:#6c7a8a;
+  --line:rgba(233,236,242,.14);
+  --line-2:rgba(233,236,242,.08);
   --ember:#e64d2e;
-  --ember-d:#b53a1f;
+  --ember-d:#ff7a5c;
   --serif:'Newsreader',Georgia,serif;
   --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
   --mono:'JetBrains Mono',Menlo,monospace;
@@ -691,9 +691,55 @@ ul.story-list li em{color:var(--ember);font-style:italic;}
 
 /* ═══ RESPONSIVE BACKDROP ═══ */
 ::selection{background:var(--ember);color:var(--bg);}
+
+/* ═══ DARK GROUND CORRECTIONS ═══
+   These components were written against a cream page: they set light fills
+   with dark text, or used var(--ink) as a background. Inverting the tokens
+   alone would leave light-on-light. Rules below come last, so they win. */
+.code-block{background:#0b1119;color:#c9d3e0;border:1px solid var(--line)}
+.code-block .str{color:#4ade9b}
+.code-block .num{color:#e8a33d}
+.code-block .com{color:#6c7a8a}
+.code-block .fn{color:#c9d3e0}
+.r2h-col-h,.r2h-row-h{background:#121a24;color:var(--ink-2)}
+.cd-d-bar-mid{background:var(--line)}
+.ts-train{background:#38bdf8}
+
+/* Diverging heatmap re-keyed for a dark ground: tint carries magnitude,
+   text stays legible at every step. */
+.r2h-val.v-pos-low{background:rgba(74,222,155,.14);color:#8fe9c0}
+.r2h-val.v-pos-med{background:rgba(74,222,155,.26);color:#c2f5dd}
+.r2h-val.v-pos-high{background:rgba(74,222,155,.44);color:#eafff5}
+.r2h-val.v-neg-low{background:rgba(255,107,122,.14);color:#ffb3bb}
+.r2h-val.v-neg-med{background:rgba(255,107,122,.26);color:#ffc9cf}
+.r2h-val.v-neg-high{background:rgba(255,107,122,.44);color:#ffe1e4}
+.r2h-val.v-neg-extreme{background:rgba(255,107,122,.60);color:#ffffff}
+.r2h-val.winner{background:var(--ember);color:#ffffff}
+.cd-d-bar-val.pos{color:#4ade9b}
+.cd-d-bar-val.neg{color:#ff6b7a}
+.pl-step.danger .pl-step-n,.pl-step.danger .pl-step-status{color:#ff6b7a}
+
+/* ═══ portfolio chrome ═══ */
+.home-link{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  display:flex;justify-content:space-between;align-items:center;gap:20px;
+  padding:12px clamp(16px,4vw,40px);
+  background:rgba(5,7,10,.86);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);text-decoration:none;
+}
+.home-link .hl-mark{font-family:var(--serif);font-size:15px;color:var(--ink);letter-spacing:-.01em}
+.home-link .hl-mark em{font-style:italic;color:var(--ember)}
+.home-link .hl-back{font-family:var(--mono);font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--mute);transition:color .2s}
+.home-link:hover .hl-back{color:var(--ember)}
+body{padding-top:46px}
+:focus-visible{outline:2px solid #38bdf8;outline-offset:3px}
 </style>
 </head>
 <body>
+<a class="home-link" href="https://nawafbalmutairi.github.io/"><span class="hl-mark">Nawaf <em>Almutairi</em></span><span class="hl-back">&#8592; back to portfolio</span></a>
+
 
 <svg width="0" height="0" style="position:absolute;">
   <symbol id="na" viewBox="0 0 40 40">
