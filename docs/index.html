@@ -740,13 +740,14 @@ body{padding-top:46px}
 <link rel="preload" href="./fonts/instrument-sans-latin-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="./fonts/instrument-sans.css">
 <link rel="stylesheet" href="./subpage.css">
+<link rel="stylesheet" href="./journey.css">
 <style>.env{background-image:url("./assets/env-1920.webp")}
 /* The retired display serif is aliased onto the shipped sans, so any
    component still asking for it renders in the one family rather than
    falling back to Georgia. */
 @font-face{font-family:'Newsreader';src:url("./fonts/instrument-sans-latin-normal.woff2") format('woff2');font-weight:100 900;font-style:normal;font-display:swap}</style>
 </head>
-<body data-hue="violet">
+<body data-hue="violet" data-pipeline="face-classifier">
 <div class="env" aria-hidden="true"></div>
 <a class="home-link" href="https://nawafbalmutairi.github.io/"><span class="hl-mark">Nawaf <em>Almutairi</em></span><span class="hl-back">&#8592; back to portfolio</span></a>
 
@@ -1165,5 +1166,6 @@ document.querySelectorAll('.cd-d-diverge').forEach(function(g){divergeObs.observ
   <span class="sep" aria-hidden="true"></span>
   <a href="tel:+966501649447">Phone</a>
 </nav>
+<script type="module" src="./journey.js"></script>
 </body>
 </html>
