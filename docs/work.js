@@ -80,6 +80,14 @@ export const cases = [
   {
     id: 'face-classifier',
     face: 'versus',
+    // src(ai-face-recognition/docs — results table): all four configurations,
+    // precision / recall / accuracy. DenseNet leads ResNet in both modes.
+    configs: [
+      { model: 'DenseNet', mode: 'Training pipeline',   precision: 0.8000, recall: 0.8000, accuracy: 0.8000 },
+      { model: 'ResNet',   mode: 'Training pipeline',   precision: 0.7376, recall: 0.7333, accuracy: 0.7333 },
+      { model: 'DenseNet', mode: 'Real-time inference', precision: 0.8667, recall: 0.8667, accuracy: 0.8667 },
+      { model: 'ResNet',   mode: 'Real-time inference', precision: 0.8000, recall: 0.8000, accuracy: 0.8000 },
+    ],
     index: '03',
     kind: 'Deep Learning · Computer Vision',
     // src(pre-redesign index.html #case-03)
@@ -96,7 +104,9 @@ export const cases = [
     stack: ['Azure ML Designer', 'PyTorch', 'DenseNet', 'ResNet', 'Computer Vision', 'GPU Training'],
     // src(pre-redesign index.html #case-03)
     figures: [
-      { k: 'DenseNet accuracy', v: '86.7%', n: 'test set' },
+      // 86.67% is the real-time inference run on 30 unseen photos, not the
+      // 70/30 test split — that one scored 80.00%. src(results table).
+      { k: 'DenseNet accuracy', v: '86.67%', n: 'real-time inference · 30 unseen' },
       { k: 'Training set',      v: '100',   n: 'photos, 50M / 50F' },
       { k: 'Inference set',     v: '30',    n: 'unseen photos, self-curated' },
       { k: 'Split',             v: '70/30', n: 'train/test, then train/val' },
