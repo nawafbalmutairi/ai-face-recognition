@@ -4,11 +4,9 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>AI Face Recognition & Gender Classification — Nawaf Almutairi</title>
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'><rect width='60' height='60' rx='14' fill='%230e141b'/><path d='M17 42V18h5l14 16V18h5v24h-5L22 26v16z' fill='%23f2f5f8'/><circle cx='45' cy='45' r='4' fill='%23ff8a4c'/></svg>">
 <meta name="description" content="Azure ML Designer pipeline benchmarking DenseNet vs ResNet for binary gender classification. Four configurations evaluated; DenseNet on real-time inference wins with 86.67% accuracy.">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..800;1,6..72,300..800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
 :root{
@@ -20,7 +18,7 @@
   --mute:rgba(244,246,248,.46);
   --line:rgba(244,246,248,.16);
   --line-2:rgba(244,246,248,.09);
-  --ember:#ff6a3d;
+  --ember:#ff8a4c;
   --ember-d:#ffb59e;
   --serif:'Newsreader',Georgia,serif;
   --sans:'Instrument Sans',-apple-system,BlinkMacSystemFont,sans-serif;
@@ -437,7 +435,7 @@ ul.story-list li em{color:var(--ember);font-style:italic;}
   border:1px solid var(--ink);
   margin:18px 0 28px;overflow-x:auto;
 }
-.code-block .kw{color:#ff6a3d;}
+.code-block .kw{color:#ff8a4c;}
 .code-block .str{color:#a8c4a0;}
 .code-block .num{color:#d4a86a;}
 .code-block .com{color:#7a7568;font-style:italic;}
@@ -739,17 +737,26 @@ body{padding-top:46px}
 .fig-frame{background:rgba(255,255,255,.06)}
 .fig-frame img{display:block;width:100%;height:auto}
 </style>
+<link rel="preload" href="./fonts/instrument-sans-latin-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="./fonts/instrument-sans.css">
+<link rel="stylesheet" href="./subpage.css">
+<style>.env{background-image:url("./assets/env-1920.webp")}
+/* The retired display serif is aliased onto the shipped sans, so any
+   component still asking for it renders in the one family rather than
+   falling back to Georgia. */
+@font-face{font-family:'Newsreader';src:url("./fonts/instrument-sans-latin-normal.woff2") format('woff2');font-weight:100 900;font-style:normal;font-display:swap}</style>
 </head>
-<body>
+<body data-hue="violet">
+<div class="env" aria-hidden="true"></div>
 <a class="home-link" href="https://nawafbalmutairi.github.io/"><span class="hl-mark">Nawaf <em>Almutairi</em></span><span class="hl-back">&#8592; back to portfolio</span></a>
 
 
 <svg width="0" height="0" style="position:absolute;">
   <symbol id="na" viewBox="0 0 40 40">
-    <rect x="0.5" y="0.5" width="39" height="39" fill="none" stroke="#ff6a3d" stroke-width="1"/>
-    <line x1="2" y1="20" x2="38" y2="20" stroke="#ff6a3d" stroke-width="1"/>
-    <path d="M 8 17 L 8 4 L 11 4 L 21 14 L 21 4 L 24 4 L 24 17 L 21 17 L 11 7 L 11 17 Z" fill="#0a0a0a"/>
-    <path d="M 14 36 L 19 23 L 22 23 L 27 36 L 24 36 L 23 33 L 18 33 L 17 36 Z M 19 31 L 22 31 L 20.5 26 Z" fill="#ff6a3d" font-style="italic"/>
+    <rect x="0.5" y="0.5" width="39" height="39" fill="none" stroke="#ff8a4c" stroke-width="1"/>
+    <line x1="2" y1="20" x2="38" y2="20" stroke="#ff8a4c" stroke-width="1"/>
+    <path d="M 8 17 L 8 4 L 11 4 L 21 14 L 21 4 L 24 4 L 24 17 L 21 17 L 11 7 L 11 17 Z" fill="#f2f5f8"/>
+    <path d="M 14 36 L 19 23 L 22 23 L 27 36 L 24 36 L 23 33 L 18 33 L 17 36 Z M 19 31 L 22 31 L 20.5 26 Z" fill="#ff8a4c" font-style="italic"/>
   </symbol>
 </svg>
 
@@ -1148,5 +1155,15 @@ var divergeObs=new IntersectionObserver(function(e){
 document.querySelectorAll('.cd-d-diverge').forEach(function(g){divergeObs.observe(g);});
 </script>
 
+
+<nav class="subdock" aria-label="Contact">
+  <a href="https://github.com/nawafbalmutairi" target="_blank" rel="noopener">GitHub</a>
+  <span class="sep" aria-hidden="true"></span>
+  <a href="https://www.linkedin.com/in/nawaf-almutairi-907766290/" target="_blank" rel="noopener">LinkedIn</a>
+  <span class="sep" aria-hidden="true"></span>
+  <a href="mailto:NawafBAlmutairi@outlook.sa">Email</a>
+  <span class="sep" aria-hidden="true"></span>
+  <a href="tel:+966501649447">Phone</a>
+</nav>
 </body>
 </html>
